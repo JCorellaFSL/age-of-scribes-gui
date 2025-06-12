@@ -131,7 +131,7 @@ POST /api/admin/flag-npc-debug  - Flag NPC for debug monitoring
 1. **Clone the repository**
    ```bash
    git clone https://github.com/JCorellaFSL/age-of-scribes-gui.git
-   cd age-of-scribes-gui
+   cd age_of_scribes_gui
    ```
 
 2. **Install dependencies**
