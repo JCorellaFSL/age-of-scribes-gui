@@ -7,6 +7,9 @@ import '../models/world_state.dart';
 import '../models/win_conditions.dart';
 import '../models/simulation_history.dart';
 import '../models/intelligence_data.dart';
+import '../models/save_slot.dart';
+import '../models/scenario_version.dart';
+import '../models/patch_notes.dart';
 
 class ApiService {
   static const String _baseUrl = 'http://localhost:5000/api'; // Fixed port to match API server
@@ -638,6 +641,195 @@ class ApiService {
     } catch (e) {
       debugPrint('Error flagging NPC for debug: $e');
       return false;
+    }
+  }
+
+  // Simulation Manager methods
+
+  /// Fetches list of available save slots
+  static Future<List<SaveSlot>> fetchSaveSlots() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/saves'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final slots = <SaveSlot>[];
+        
+        if (data is List) {
+          for (final slotJson in data) {
+            if (slotJson is Map<String, dynamic>) {
+              slots.add(SaveSlot.fromJson(slotJson));
+            }
+          }
+        } else if (data is Map<String, dynamic> && data.containsKey('saves')) {
+          final savesList = data['saves'];
+          if (savesList is List) {
+            for (final slotJson in savesList) {
+              if (slotJson is Map<String, dynamic>) {
+                slots.add(SaveSlot.fromJson(slotJson));
+              }
+            }
+          }
+        }
+        
+        return slots;
+      }
+      debugPrint('Fetch save slots failed with status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching save slots: $e');
+      return [];
+    }
+  }
+
+  /// Saves current simulation state to a named slot
+  static Future<bool> saveCurrentSimulation(String slotName, {String? description}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/saves'),
+        headers: _headers,
+        body: jsonEncode({
+          'name': slotName,
+          'description': description,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+      debugPrint('Save current simulation failed with status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
+      return false;
+    } catch (e) {
+      debugPrint('Error saving current simulation: $e');
+      return false;
+    }
+  }
+
+  /// Loads a save slot by ID
+  static Future<bool> loadSaveSlot(String slotId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/saves/$slotId/load'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+      debugPrint('Load save slot failed with status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
+      return false;
+    } catch (e) {
+      debugPrint('Error loading save slot: $e');
+      return false;
+    }
+  }
+
+  /// Deletes a save slot by ID
+  static Future<bool> deleteSaveSlot(String slotId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/saves/$slotId'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return true;
+      }
+      debugPrint('Delete save slot failed with status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
+      return false;
+    } catch (e) {
+      debugPrint('Error deleting save slot: $e');
+      return false;
+    }
+  }
+
+  /// Fetches list of available scenario versions
+  static Future<List<ScenarioVersion>> fetchScenarioVersions() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/scenarios/versions'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final versions = <ScenarioVersion>[];
+        
+        if (data is List) {
+          for (final versionJson in data) {
+            if (versionJson is Map<String, dynamic>) {
+              versions.add(ScenarioVersion.fromJson(versionJson));
+            }
+          }
+        } else if (data is Map<String, dynamic> && data.containsKey('versions')) {
+          final versionsList = data['versions'];
+          if (versionsList is List) {
+            for (final versionJson in versionsList) {
+              if (versionJson is Map<String, dynamic>) {
+                versions.add(ScenarioVersion.fromJson(versionJson));
+              }
+            }
+          }
+        }
+        
+        return versions;
+      }
+      debugPrint('Fetch scenario versions failed with status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
+      return [];
+    } catch (e) {
+      debugPrint('Error fetching scenario versions: $e');
+      return [];
+    }
+  }
+
+  /// Loads a specific scenario version as active
+  static Future<bool> loadScenarioVersion(String versionId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/scenarios/$versionId/load'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      }
+      debugPrint('Load scenario version failed with status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
+      return false;
+    } catch (e) {
+      debugPrint('Error loading scenario version: $e');
+      return false;
+    }
+  }
+
+  /// Fetches latest patch notes
+  static Future<PatchNotes?> fetchPatchNotes() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/meta/patch-notes'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          return PatchNotes.fromJson(data);
+        }
+      }
+      debugPrint('Fetch patch notes failed with status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching patch notes: $e');
+      return null;
     }
   }
 } 

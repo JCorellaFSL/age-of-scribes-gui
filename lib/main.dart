@@ -5,6 +5,7 @@ import 'screens/win_conditions_screen.dart';
 import 'screens/simulation_history_screen.dart';
 import 'screens/intel_events_screen.dart';
 import 'screens/admin_tools_screen.dart';
+import 'screens/simulation_manager_screen.dart';
 import 'widgets/sim_status_bar.dart';
 
 void main() {
@@ -49,12 +50,13 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     SimulationHistoryScreen(),
     IntelEventsScreen(),
     AdminToolsScreen(),
+    SimulationManagerScreen(),
   ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 7, vsync: this);
   }
 
   @override
@@ -118,6 +120,11 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
             icon: Icon(Icons.admin_panel_settings),
             selectedIcon: Icon(Icons.admin_panel_settings),
             label: 'Admin Tools',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.manage_history),
+            selectedIcon: Icon(Icons.manage_history),
+            label: 'Sim Manager',
           ),
         ],
       ),
